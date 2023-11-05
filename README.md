@@ -103,3 +103,37 @@ C'est dans ```config/packages/security.yaml``` que cela se passe :
             lazy: true
             provider: chain_provider
 ```
+
+### Soft Delete
+
+installation :
+```yaml
+composer require gedmo/doctrine-extensions
+```
+
+Mise à jour de la configuration Doctrine ```config/doctrine.yaml```
+```yaml
+doctrine:
+    dbal:
+    # your dbal config here
+    orm:
+        auto_generate_proxy_classes: '%kernel.debug%'
+        auto_mapping: true
+        # only these lines are added additionally
+        filters:
+            softdeleteable:
+                class: Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter
+```
+
+Ajout des listeners dans ```services.yaml```
+```yaml
+services:
+    # Doctrine Extension listeners to handle behaviors
+    gedmo.listener.softdeleteable:
+        class: Gedmo\SoftDeleteable\SoftDeleteableListener
+        tags:
+            - { name: doctrine.event_listener, event: 'onFlush' }
+            - { name: doctrine.event_listener, event: 'loadClassMetadata' }
+        calls:
+            - [ setAnnotationReader, [ "@annotation_reader" ] ]
+```
